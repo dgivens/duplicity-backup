@@ -1,0 +1,11 @@
+[Unit]
+Description=Local backup script
+Requires=network-online.target
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1800
+Persistent=true
+
+[Install]
+WantedBy=timers.target

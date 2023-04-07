@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o errtrace
+
+if [[ -v ${DEBUG} ]]; then
+	set -o xtrace
+fi
+
+includes="${INC_FILE:=/etc/duplicity-backup/includes}"
+destpath="${DEST:=/mnt/backups}"
+dargs="${DUPLICITY_ARGS:=--full-if-older-than 1M}"
+desturi="file://${destpath}"
+
+if [[ ! -d "${destpath}" ]]; then
+	echo "Backup failed - ${destpath} does not exist"
+	exit 1
+fi
+
+echo "Beginning system backup"
+echo "Exporting installed packages to ${destpath}/pkg-list.txt"
+dpkg --get-selections | grep -v deinstall > "${destpath}/pkg-list.txt"
+
+echo -e "Executing duplicity...\n\n"
+
+duplicity ${dargs} --include-filelist "${includes}" --exclude / / "${desturi}"
+chmod -R g+r "${destpath}"
+echo -e "\nBackup complete!\n"
