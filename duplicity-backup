@@ -35,10 +35,10 @@ destpath="${DEST:=/mnt/backups}"
 dargs="${DUPLICITY_ARGS:=--full-if-older-than 1M}"
 desturi="file://${destpath}"
 
-healthcheckio_id="${HEALTHCHECKIO_ID:-}"
+healthcheckio_check_id="${HEALTHCHECKIO_CHECK_ID:-}"
 
-if [[ -n "${healthcheckio_id}" ]]; then
-	hcio_url="https://hc-ping.com/${healthcheckio_id}"
+if [[ -n "${healthcheckio_check_id}" ]]; then
+	hcio_url="https://hc-ping.com/${healthcheckio_check_id}"
 fi
 
 trap 'hc_ping "${hcio_url}" fail' ERR
