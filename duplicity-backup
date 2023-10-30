@@ -8,22 +8,55 @@ if [[ -v ${DEBUG} ]]; then
 	set -o xtrace
 fi
 
+function hc_ping() {
+	local url="${1:-}"
+	local signal="${2:-}"
+
+	if [[ -z "${url}" ]]; then
+		echo "Healthcheck.io URL not set"
+		return 0
+	fi
+
+	if [[ -n "${signal}" ]]; then
+					url="${url}/${signal}"
+	fi
+
+	echo "Pinging healthcheck.io at ${url}"
+	curl -m 10 --retry 5 "${url}"
+}
+
+# shellcheck source=/dev/null
+if [[ -f /etc/duplicity-backup/duplicity-backup.env ]]; then
+	source /etc/duplicity-backup/duplicity-backup.env
+fi
+
 includes="${INC_FILE:=/etc/duplicity-backup/includes}"
 destpath="${DEST:=/mnt/backups}"
 dargs="${DUPLICITY_ARGS:=--full-if-older-than 1M}"
 desturi="file://${destpath}"
+
+healthcheckio_id="${HEALTHCHECKIO_ID:-}"
+
+if [[ -n "${healthcheckio_id}" ]]; then
+	hcio_url="https://hc-ping.com/${healthcheckio_id}"
+fi
+
+trap 'hc_ping "${hcio_url}" fail' ERR
 
 if [[ ! -d "${destpath}" ]]; then
 	echo "Backup failed - ${destpath} does not exist"
 	exit 1
 fi
 
+hc_ping "${hcio_url}" start
 echo "Beginning system backup"
 echo "Exporting installed packages to ${destpath}/pkg-list.txt"
 dpkg --get-selections | grep -v deinstall > "${destpath}/pkg-list.txt"
 
 echo -e "Executing duplicity...\n\n"
 
-duplicity ${dargs} --include-filelist "${includes}" --exclude / / "${desturi}"
+duplicity "${dargs}" --include-filelist "${includes}" --exclude / / "${desturi}"
 chmod -R g+r "${destpath}"
+
+hc_ping "${hcio_url}"
 echo -e "\nBackup complete!\n"
