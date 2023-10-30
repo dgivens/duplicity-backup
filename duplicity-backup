@@ -55,7 +55,7 @@ dpkg --get-selections | grep -v deinstall > "${destpath}/pkg-list.txt"
 
 echo -e "Executing duplicity...\n\n"
 
-duplicity "${dargs}" --include-filelist "${includes}" --exclude / / "${desturi}"
+duplicity ${dargs} --include-filelist "${includes}" --exclude / / "${desturi}"
 chmod -R g+r "${destpath}"
 
 hc_ping "${hcio_url}"
