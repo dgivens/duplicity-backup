@@ -5,6 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/sbin/duplicity-backup
+EnvironmentFile=/etc/duplicity-backup/duplicity-backup.env
 
 [Install]
 WantedBy=multi-user.target
